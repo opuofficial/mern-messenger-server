@@ -80,7 +80,7 @@ const userSearch = async (req, res, next) => {
     const currentUserId = req.user.userId;
 
     if (!query) {
-      return res.status(400).json({ message: "Query parameter is required" });
+      return res.json([]);
     }
 
     const users = await User.find({

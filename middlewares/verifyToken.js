@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
+  console.log(req.headers);
+
   if (!authHeader) {
     const error = new Error("Authorization header not found");
     error.status = 401;
