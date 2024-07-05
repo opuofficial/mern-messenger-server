@@ -37,11 +37,11 @@ const authenticateUser = (token) => {
   }
 };
 
-const setUserOnline = async (userId) => {
+const setUserOnline = async (userId, socketId) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { isActive: true },
+      { isActive: true, sId: socketId },
       { new: true }
     );
 
@@ -55,11 +55,11 @@ const setUserOnline = async (userId) => {
   }
 };
 
-const setUserOffline = async (userId) => {
+const setUserOffline = async (userId, socketId) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { isActive: false },
+      { isActive: false, sId: socketId },
       { new: true }
     );
 
@@ -74,10 +74,10 @@ const setUserOffline = async (userId) => {
 };
 
 io.use((socket, next) => {
-  console.log("socket middleware");
+  // console.log("socket middleware");
   const token = socket.handshake.query.token;
   const userId = authenticateUser(token);
-  console.log("from socket middleware", userId);
+  // console.log("from socket middleware", userId);
   if (userId) {
     socket.userId = userId;
     next();
@@ -85,8 +85,8 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected", socket.userId);
-  setUserOnline(socket.userId);
+  // console.log("a user connected", socket.userId);
+  setUserOnline(socket.userId, socket.id);
 
   socket.on("new-message", async (payload) => {
     const { recieverUserId, message } = payload;
@@ -120,6 +120,7 @@ io.on("connection", (socket) => {
       await newMessage.save();
 
       if (receiver.isActive) {
+        console.log("emitting to", receiver.sId);
         socket.to(receiver.sId).emit("new-message", newMessage);
       }
     } catch (error) {
@@ -128,8 +129,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("a user disconnected", socket.userId);
-    setUserOffline(socket.userId);
+    // console.log("a user disconnected", socket.userId);
+    setUserOffline(socket.userId, socket.id);
   });
 });
 
