@@ -119,8 +119,9 @@ io.on("connection", (socket) => {
 
       await newMessage.save();
 
+      socket.emit("new-message", newMessage);
+
       if (receiver.isActive) {
-        console.log("emitting to", receiver.sId);
         socket.to(receiver.sId).emit("new-message", newMessage);
       }
     } catch (error) {
