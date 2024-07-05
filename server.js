@@ -15,7 +15,8 @@ app.use(morgan("tiny"));
 
 connectDB();
 
-app.use("/user", require("./routes/userRoute"));
+app.use("/user", require("./routes/userRoutes"));
+app.use("/chats", require("./routes/chatRoutes"));
 
 app.use((error, req, res, next) => {
   console.log(error.message);
