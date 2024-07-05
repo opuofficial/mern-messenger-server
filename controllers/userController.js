@@ -74,7 +74,6 @@ const userSignin = async (req, res, next) => {
 };
 
 const userSearch = async (req, res, next) => {
-  console.log(req.user);
   try {
     const { query } = req.query;
     const currentUserId = req.user.userId;

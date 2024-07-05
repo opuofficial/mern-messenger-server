@@ -9,8 +9,6 @@ const getConversations = async (req, res) => {
       users: userId,
     }).populate("users", "username isActive sId");
 
-    console.log(conversations);
-
     res.status(200).json(conversations);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
