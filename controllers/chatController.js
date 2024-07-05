@@ -7,9 +7,15 @@ const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({
       users: userId,
-    }).populate("users", "username isActive sId");
+    }).populate("users", "username _id");
 
-    res.status(200).json(conversations);
+    const filterConversation = conversations.map((conversation) => {
+      let x = conversation.users.filter((user) => user._id != userId);
+
+      return x;
+    });
+
+    res.status(200).json(...filterConversation);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

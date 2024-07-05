@@ -10,6 +10,9 @@ const socketIO = require("socket.io");
 const server = http.createServer(app);
 const io = socketIO(server, { cors: { origin: "*" } });
 const jwt = require("jsonwebtoken");
+const User = require("./models/userModel");
+const Conversation = require("./models/conversationModel");
+const Message = require("./models/messageModel");
 
 const connectDB = require("./config/db");
 
@@ -34,6 +37,42 @@ const authenticateUser = (token) => {
   }
 };
 
+const setUserOnline = async (userId) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { isActive: true },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error setting user online:", error);
+  }
+};
+
+const setUserOffline = async (userId) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error setting user offline:", error);
+  }
+};
+
 io.use((socket, next) => {
   console.log("socket middleware");
   const token = socket.handshake.query.token;
@@ -47,9 +86,50 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
   console.log("a user connected", socket.userId);
+  setUserOnline(socket.userId);
+
+  socket.on("new-message", async (payload) => {
+    const { recieverUserId, message } = payload;
+    const senderUserId = socket.userId;
+
+    try {
+      const receiver = await User.findById(recieverUserId);
+
+      if (!receiver) {
+        console.error("Receiver not found");
+        return;
+      }
+
+      let conversation = await Conversation.findOne({
+        users: { $all: [senderUserId, recieverUserId] },
+      });
+
+      if (!conversation) {
+        conversation = new Conversation({
+          users: [senderUserId, recieverUserId],
+        });
+        await conversation.save();
+      }
+
+      const newMessage = new Message({
+        text: message,
+        sender: senderUserId,
+        conversationId: conversation._id,
+      });
+
+      await newMessage.save();
+
+      if (receiver.isActive) {
+        socket.to(receiver.sId).emit("new-message", newMessage);
+      }
+    } catch (error) {
+      console.error("Error handling new message:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("a user disconnected", socket.userId);
+    setUserOffline(socket.userId);
   });
 });
 

@@ -65,6 +65,7 @@ const userSignin = async (req, res, next) => {
     });
 
     res.json({
+      id: user._id,
       token,
       username: user.username,
     });
@@ -93,8 +94,28 @@ const userSearch = async (req, res, next) => {
   }
 };
 
+const getReceiverUsername = async (req, res, next) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId).select("username");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the user" });
+  }
+};
+
 module.exports = {
   userSignup,
   userSignin,
   userSearch,
+  getReceiverUsername,
 };
