@@ -88,6 +88,7 @@ const userSearch = async (req, res, next) => {
       _id: { $ne: currentUserId },
     }).select("-password");
 
+    // console.log(users);
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Server error", error });

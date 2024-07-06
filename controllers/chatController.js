@@ -31,7 +31,8 @@ const getConversations = async (req, res) => {
       })
       .map((conversation) => {
         return {
-          user: conversation.users[0],
+          _id: conversation.users[0]._id,
+          username: conversation.users[0].username,
         };
       });
 
