@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-// app.use(morgan("tiny"));
+app.use(morgan("tiny"));
 
 connectDB();
 
@@ -113,7 +113,7 @@ io.on("connection", (socket) => {
 
       const newMessage = new Message({
         text: message,
-        sender: senderUserId,
+        sender: { _id: senderUserId },
         conversationId: conversation._id,
       });
 

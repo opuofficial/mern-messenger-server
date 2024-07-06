@@ -19,9 +19,6 @@ const getMessages = async (req, res) => {
     // Retrieve all messages for the conversation and populate sender with all fields
     const messages = await Message.find({
       conversationId: conversation._id,
-    }).populate({
-      path: "sender",
-      select: "-password", // Exclude sensitive fields if needed
     });
 
     res.status(200).json(messages);
